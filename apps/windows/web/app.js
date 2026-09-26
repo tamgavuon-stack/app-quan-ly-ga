@@ -1,7 +1,7 @@
 import { DEVICE_KEY, FARM_DOCUMENT_ID, FARM_SCHEMA_VERSION, STORAGE_KEY, addRecord, formatCurrency, makeEnvelope, normalizeEnvelope, summarize, toSyncDocument } from "./farm-store.js";
 import { mergeEnvelopes } from "./sync-engine.js";
 import { GOOGLE_DESKTOP_CLIENT_ID } from "./config.js";
-import { authenticateDesktopGoogle } from "./oauth-desktop.js";
+import { authenticateDesktopGoogle, clearRefreshToken, isTauriRuntime, loadRefreshToken, saveRefreshToken } from "./oauth-desktop.js";
 
 const $ = (id) => document.getElementById(id);
 const LEGACY_STORAGE_KEY = "quan-ly-chan-nuoi-ga.windows.records.v1";
@@ -75,9 +75,23 @@ $("sync").addEventListener("click", async () => {
   $("drive-status").textContent = "Đang mở Google OAuth trong trình duyệt…";
   try {
     desktopToken = await authenticateDesktopGoogle();
-    $("drive-status").textContent = desktopToken.refreshToken ? "Google Drive đã kết nối; token đang giữ trong phiên Windows." : "Google Drive đã kết nối; cần quyền offline để giữ refresh token.";
+    if (desktopToken.refreshToken && isTauriRuntime()) await saveRefreshToken(desktopToken.refreshToken);
+    $("drive-status").textContent = desktopToken.refreshToken ? "Google Drive đã kết nối; refresh token đã lưu trong Windows Credential Manager." : "Google Drive đã kết nối; cần quyền offline để giữ refresh token.";
   } catch (error) {
     $("drive-status").textContent = error instanceof Error ? error.message : "Không thể kết nối Google Drive.";
   }
 });
+$("disconnect").addEventListener("click", async () => {
+  if (!isTauriRuntime()) { $("drive-status").textContent = "Chức năng này chỉ có trong app Windows Tauri."; return; }
+  try { await clearRefreshToken(); desktopToken = null; $("drive-status").textContent = "Đã xóa refresh token khỏi Windows Credential Manager."; }
+  catch (error) { $("drive-status").textContent = error instanceof Error ? error.message : "Không thể xóa kết nối Google Drive."; }
+});
 render();
+if (isTauriRuntime()) {
+  loadRefreshToken().then((refreshToken) => {
+    if (refreshToken) {
+      desktopToken = { refreshToken };
+      $("drive-status").textContent = "Đã khôi phục kết nối Google Drive từ Windows Credential Manager.";
+    }
+  }).catch(() => { /* Credential Manager chưa có token hoặc chưa khả dụng. */ });
+}

@@ -7,6 +7,41 @@ use std::{
 use tauri::Emitter;
 use url::Url;
 
+const KEYRING_SERVICE: &str = "com.quanlychannuoiga.desktop";
+const KEYRING_USER: &str = "google-drive-refresh-token";
+
+fn refresh_token_entry() -> Result<keyring::Entry, String> {
+    keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER)
+        .map_err(|error| format!("Không khởi tạo được Credential Manager: {error}"))
+}
+
+#[tauri::command]
+fn store_refresh_token(refresh_token: String) -> Result<(), String> {
+    if refresh_token.trim().is_empty() {
+        return Err("Refresh token trống".to_string());
+    }
+    refresh_token_entry()?
+        .set_password(&refresh_token)
+        .map_err(|error| format!("Không lưu được refresh token: {error}"))
+}
+
+#[tauri::command]
+fn load_refresh_token() -> Result<Option<String>, String> {
+    match refresh_token_entry()?.get_password() {
+        Ok(token) => Ok(Some(token)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(error) => Err(format!("Không đọc được refresh token: {error}")),
+    }
+}
+
+#[tauri::command]
+fn clear_refresh_token() -> Result<(), String> {
+    match refresh_token_entry()?.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(error) => Err(format!("Không xóa được refresh token: {error}")),
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct OAuthCallback {
     pub code: String,
@@ -73,7 +108,12 @@ fn start_google_oauth(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![start_google_oauth])
+        .invoke_handler(tauri::generate_handler![
+            start_google_oauth,
+            store_refresh_token,
+            load_refresh_token,
+            clear_refresh_token
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

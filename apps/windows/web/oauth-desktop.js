@@ -38,3 +38,8 @@ export async function authenticateDesktopGoogle() {
   const token = await response.json();
   return { accessToken: token.access_token, refreshToken: token.refresh_token, expiresAt: token.expires_in ? Date.now() + token.expires_in * 1000 : undefined, tokenType: token.token_type };
 }
+
+export function isTauriRuntime() { return Boolean(window.__TAURI_INTERNALS__); }
+export async function saveRefreshToken(refreshToken) { return invoke("store_refresh_token", { refreshToken }); }
+export async function loadRefreshToken() { return invoke("load_refresh_token"); }
+export async function clearRefreshToken() { return invoke("clear_refresh_token"); }

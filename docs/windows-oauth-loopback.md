@@ -9,6 +9,6 @@
 5. Emit authorization code và port về frontend.
 6. Frontend đổi code lấy token bằng PKCE và Desktop Client ID.
 
-Token hiện chỉ giữ trong phiên Windows; bước tiếp theo là lưu refresh token trong Windows Credential Manager/OS credential store trước khi bật đồng bộ nền.
+Refresh token được lưu qua Tauri `keyring` trong Windows Credential Manager với service `com.quanlychannuoiga.desktop`; frontend chỉ giữ access token trong bộ nhớ phiên. Khi mở lại app, frontend gọi native command để khôi phục trạng thái đã kết nối mà không đọc token từ `localStorage`.
 
 `cargo check` trên sandbox Linux bị chặn bởi thiếu system library `gdk-3.0`; mã Rust đã được `cargo fmt` kiểm tra. Build Windows cần chạy trên Windows CI hoặc máy Windows.
