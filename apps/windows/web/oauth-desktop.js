@@ -33,8 +33,17 @@ export async function authenticateDesktopGoogle() {
   const result = await callback;
   clearTimeout(timeout);
   if (stopListening) await stopListening();
+  if (result.error) throw new Error(`Google OAuth từ chối: ${result.error}`);
+  if (!result.code) throw new Error("Google không trả về authorization code");
   const response = await fetch(TOKEN_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ client_id: GOOGLE_DESKTOP_CLIENT_ID, code: result.code, code_verifier: verifier, grant_type: "authorization_code", redirect_uri: `http://127.0.0.1:${result.port || ""}/oauth/callback` }).toString() });
-  if (!response.ok) throw new Error(`Google đổi authorization code thất bại (${response.status})`);
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const payload = await response.json();
+      detail = payload.error_description || payload.error || "";
+    } catch { /* response may not be JSON */ }
+    throw new Error(`Google đổi authorization code thất bại (${response.status})${detail ? `: ${detail}` : ""}`);
+  }
   const token = await response.json();
   return { accessToken: token.access_token, refreshToken: token.refresh_token, expiresAt: token.expires_in ? Date.now() + token.expires_in * 1000 : undefined, tokenType: token.token_type };
 }

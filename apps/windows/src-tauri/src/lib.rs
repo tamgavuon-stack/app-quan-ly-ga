@@ -44,9 +44,10 @@ fn clear_refresh_token() -> Result<(), String> {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct OAuthCallback {
-    pub code: String,
+    pub code: Option<String>,
     pub state: String,
     pub port: u16,
+    pub error: Option<String>,
 }
 
 #[tauri::command]
@@ -82,12 +83,21 @@ fn start_google_oauth(
                         .query_pairs()
                         .into_owned()
                         .collect::<std::collections::HashMap<_, _>>();
-                    let code = query.get("code")?.to_string();
                     let state = query.get("state")?.to_string();
                     if state != expected_state {
                         return None;
                     }
-                    Some(OAuthCallback { code, state, port })
+                    Some(OAuthCallback {
+                        code: query.get("code").cloned(),
+                        state,
+                        port,
+                        error: query.get("error").map(|error| {
+                            match query.get("error_description") {
+                                Some(description) => format!("{error}: {description}"),
+                                None => error.to_string(),
+                            }
+                        }),
+                    })
                 });
             let body = if result.is_some() {
                 "Bạn có thể quay lại ứng dụng Quản lý chăn nuôi gà."
