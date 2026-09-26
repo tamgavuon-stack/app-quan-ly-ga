@@ -8,12 +8,14 @@
   </head>
   <body>
     <main class="app-shell">
-      <header class="topbar"><div><span class="eyebrow">SỔ TAY TRANG TRẠI</span><h1>Quản lý chăn nuôi gà</h1><p>Dữ liệu Windows sẽ dùng chung schema và Google Drive với Android.</p></div><div class="cloud">☁</div></header>
-      <section class="hero"><span>KẾT QUẢ THÁNG</span><strong id="profit">0 đ</strong><small>Dữ liệu đang lưu cục bộ trên máy Windows</small></section>
-      <section class="grid"><article><span>Doanh thu</span><strong id="income">0 đ</strong></article><article><span>Chi phí</span><strong id="expense">0 đ</strong></article><article><span>Thay đổi chờ đồng bộ</span><strong id="pending">0 bản ghi</strong></article></section>
-      <section class="panel"><div><h2>Google Drive</h2><p id="drive-status">Chưa kết nối. Hãy cấu hình OAuth Client cho Windows.</p></div><button id="sync">Kết nối / Đồng bộ</button></section>
-      <p class="footnote">Khung Tauri đã sẵn sàng. Bước tiếp theo là chuyển UI dùng chung sang React/TypeScript và nối native OAuth Windows.</p>
+      <header class="topbar"><div><span class="eyebrow">SỔ TAY TRANG TRẠI</span><h1>Quản lý chăn nuôi gà</h1><p>Theo dõi tiền thức ăn, thuốc thú y, xuất bán và đàn gà.</p></div><div class="cloud">☁</div></header>
+      <section class="hero"><span>KẾT QUẢ HIỆN TẠI</span><strong id="profit">0 đ</strong><small id="period-label">Đang lưu offline trên máy Windows</small></section>
+      <section class="grid"><article><span>Doanh thu</span><strong id="income">0 đ</strong></article><article><span>Chi phí</span><strong id="expense">0 đ</strong></article><article><span>Tổng đàn</span><strong id="flock">0 con</strong></article></section>
+      <section class="panel form-panel"><div><h2>Ghi giao dịch</h2><p>Nhập nhanh một khoản thu, chi hoặc cập nhật đàn.</p></div><form id="record-form"><div class="form-row"><select id="kind"><option value="expense">Chi phí</option><option value="income">Doanh thu</option><option value="flock">Cập nhật đàn</option></select><input id="category" placeholder="Danh mục (thức ăn, thuốc...)" required /><input id="amount" type="number" min="0" step="1000" placeholder="Số tiền" /></div><div class="form-row"><input id="quantity" type="number" min="0" step="1" placeholder="Số lượng con (nếu có)" /><input id="note" placeholder="Ghi chú" /><button type="submit">Thêm giao dịch</button></div></form></section>
+      <section class="panel"><div class="panel-heading"><div><h2>Giao dịch gần đây</h2><p id="record-count">0 bản ghi offline</p></div><button id="clear" class="secondary">Xóa dữ liệu local</button></div><div id="records" class="records"><p class="empty">Chưa có giao dịch. Hãy nhập bản ghi đầu tiên.</p></div></section>
+      <section class="panel"><div><h2>Google Drive</h2><p id="drive-status">Chưa kết nối. Dữ liệu offline vẫn hoạt động bình thường.</p></div><button id="sync">Kết nối / Đồng bộ</button></section>
+      <p class="footnote">Windows MVP dùng localStorage; bước kế tiếp sẽ thay lớp lưu này bằng schema v2 và đồng bộ Google Drive dùng chung với Android.</p>
     </main>
-    <script src="./app.js"></script>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
