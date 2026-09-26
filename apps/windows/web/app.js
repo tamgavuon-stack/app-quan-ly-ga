@@ -2,6 +2,7 @@ import { DEVICE_KEY, FARM_DOCUMENT_ID, FARM_SCHEMA_VERSION, STORAGE_KEY, addReco
 import { mergeEnvelopes } from "./sync-engine.js";
 import { GOOGLE_DESKTOP_CLIENT_ID } from "./config.js";
 import { authenticateDesktopGoogle, clearRefreshToken, isTauriRuntime, loadRefreshToken, saveRefreshToken } from "./oauth-desktop.js";
+import { downloadSyncDocument, findSyncFile, refreshDesktopAccessToken, uploadSyncDocument } from "./drive-desktop.js";
 
 const $ = (id) => document.getElementById(id);
 const LEGACY_STORAGE_KEY = "quan-ly-chan-nuoi-ga.windows.records.v1";
@@ -21,6 +22,35 @@ function loadEnvelope() {
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope)); }
 function setRecords(records, pendingChanges = envelope.sync.pendingChanges + 1) { envelope = makeEnvelope(records, deviceId, { ...envelope.sync, pendingChanges }); save(); render(); }
+async function syncDriveNow() {
+  let refreshToken = desktopToken?.refreshToken || (isTauriRuntime() ? await loadRefreshToken() : null);
+  if (!refreshToken) {
+    desktopToken = await authenticateDesktopGoogle();
+    refreshToken = desktopToken.refreshToken;
+    if (refreshToken && isTauriRuntime()) await saveRefreshToken(refreshToken);
+  }
+  if (!refreshToken) throw new Error("Google không cấp refresh token; hãy kết nối lại với quyền offline.");
+  desktopToken = await refreshDesktopAccessToken(refreshToken);
+  const file = await findSyncFile(desktopToken.accessToken);
+  let remoteDocument = null;
+  let conflicts = [];
+  if (file) {
+    remoteDocument = await downloadSyncDocument(desktopToken.accessToken, file.id);
+    const remoteEnvelope = normalizeEnvelope(remoteDocument, { deviceId });
+    const merged = mergeEnvelopes(envelope, { ...remoteEnvelope, revision: Number(remoteDocument.revision) || 0 }, now());
+    envelope = merged.envelope;
+    conflicts = merged.conflicts;
+    save(); render();
+  }
+  if (!file || envelope.sync.pendingChanges > 0) {
+    const revision = (Number(remoteDocument?.revision) || 0) + 1;
+    const uploaded = await uploadSyncDocument(desktopToken.accessToken, file, toSyncDocument(envelope, now(), revision));
+    envelope.sync = { ...envelope.sync, remoteFileId: uploaded.id, remoteRevision: revision, lastSyncedAt: now(), pendingChanges: 0 };
+    save(); render();
+  }
+  $("conflict-status").textContent = conflicts.length ? `Phát hiện ${conflicts.length} xung đột; hệ thống giữ bản ghi theo updatedAt/deviceId.` : "Đồng bộ hoàn tất, không có xung đột.";
+  return Boolean(file);
+}
 function render() {
   const summary = summarize(envelope.records);
   $("income").textContent = formatCurrency(summary.income);
@@ -72,11 +102,10 @@ $("import-file").addEventListener("change", async (event) => {
 });
 $("sync").addEventListener("click", async () => {
   if (!GOOGLE_DESKTOP_CLIENT_ID) { $("drive-status").textContent = "Chưa có Desktop Client ID; dữ liệu local vẫn hoạt động bình thường."; return; }
-  $("drive-status").textContent = "Đang mở Google OAuth trong trình duyệt…";
+  $("drive-status").textContent = "Đang kết nối và đồng bộ Google Drive…";
   try {
-    desktopToken = await authenticateDesktopGoogle();
-    if (desktopToken.refreshToken && isTauriRuntime()) await saveRefreshToken(desktopToken.refreshToken);
-    $("drive-status").textContent = desktopToken.refreshToken ? "Google Drive đã kết nối; refresh token đã lưu trong Windows Credential Manager." : "Google Drive đã kết nối; cần quyền offline để giữ refresh token.";
+    const hadRemoteFile = await syncDriveNow();
+    $("drive-status").textContent = hadRemoteFile ? "Đã tải, merge và đồng bộ dữ liệu với Google Drive." : "Đã tạo file dữ liệu mới trên Google Drive.";
   } catch (error) {
     $("drive-status").textContent = error instanceof Error ? error.message : "Không thể kết nối Google Drive.";
   }
