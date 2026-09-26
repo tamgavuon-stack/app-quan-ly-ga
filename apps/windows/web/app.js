@@ -1,5 +1,6 @@
 import { DEVICE_KEY, FARM_DOCUMENT_ID, FARM_SCHEMA_VERSION, STORAGE_KEY, addRecord, formatCurrency, makeEnvelope, normalizeEnvelope, summarize, toSyncDocument } from "./farm-store.js";
 import { mergeEnvelopes } from "./sync-engine.js";
+import { GOOGLE_DESKTOP_CLIENT_ID } from "./config.js";
 
 const $ = (id) => document.getElementById(id);
 const LEGACY_STORAGE_KEY = "quan-ly-chan-nuoi-ga.windows.records.v1";
@@ -67,5 +68,5 @@ $("import-file").addEventListener("change", async (event) => {
   catch { alert("File JSON không hợp lệ hoặc không đúng định dạng backup."); }
   event.target.value = "";
 });
-$("sync").addEventListener("click", () => { $("drive-status").textContent = "Đã sẵn sàng: dữ liệu local đã ở schema v2 và có thể nối Google Drive."; });
+$("sync").addEventListener("click", () => { $("drive-status").textContent = GOOGLE_DESKTOP_CLIENT_ID ? "Đã cấu hình Desktop Client ID; bước kế tiếp là mở OAuth loopback trong Tauri." : "Chưa có Desktop Client ID; dữ liệu local vẫn hoạt động bình thường."; });
 render();

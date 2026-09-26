@@ -9,8 +9,9 @@ import { authenticateWithGoogleDrive } from "@/lib/google-oauth";
 import { syncWithGoogleDrive } from "@/lib/google-drive-sync";
 import { clearDriveToken, loadDriveToken, saveDriveToken, type OAuthToken } from "@/lib/sync-credentials";
 import { useFarmStore } from "@/lib/farm-store";
+import { GOOGLE_ANDROID_CLIENT_ID } from "@/constants/google-oauth";
 
-const clientId = process.env.EXPO_PUBLIC_GOOGLE_DRIVE_CLIENT_ID ?? "";
+const clientId = process.env.EXPO_PUBLIC_GOOGLE_DRIVE_CLIENT_ID ?? GOOGLE_ANDROID_CLIENT_ID;
 
 export default function SyncScreen() {
   const colors = useColors();
