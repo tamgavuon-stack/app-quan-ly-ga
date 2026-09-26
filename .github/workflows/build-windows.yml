@@ -44,7 +44,7 @@ jobs:
       - name: Build Windows installers
         shell: pwsh
         working-directory: apps/windows/src-tauri
-        run: cargo tauri build --bundles nsis,msi
+        run: cargo tauri build --bundles nsis,msi --verbose
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
