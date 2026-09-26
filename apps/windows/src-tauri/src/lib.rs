@@ -42,7 +42,7 @@ fn clear_refresh_token() -> Result<(), String> {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct OAuthCallback {
     pub code: String,
     pub state: String,
