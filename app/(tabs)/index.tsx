@@ -48,9 +48,9 @@ export default function HomeScreen() {
           <Text style={[styles.title, { color: colors.foreground }]}>Chào bà con 👋</Text>
           <Text style={[styles.subtitle, { color: colors.muted }]}>Theo dõi đàn gà, dòng tiền thật gọn.</Text>
         </View>
-        <View style={[styles.avatar, { backgroundColor: colors.primary + "18" }]}>
-          <IconSymbol name="leaf.fill" size={24} color={colors.primary} />
-        </View>
+        <Pressable onPress={() => router.push("/sync")} style={[styles.avatar, { backgroundColor: colors.primary + "18" }]}>
+          <IconSymbol name="cloud.fill" size={24} color={colors.primary} />
+        </Pressable>
       </View>
 
       <View style={[styles.periodBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
