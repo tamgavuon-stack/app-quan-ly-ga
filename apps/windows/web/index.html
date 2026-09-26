@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý chăn nuôi gà</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar"><div><span class="eyebrow">SỔ TAY TRANG TRẠI</span><h1>Quản lý chăn nuôi gà</h1><p>Dữ liệu Windows sẽ dùng chung schema và Google Drive với Android.</p></div><div class="cloud">☁</div></header>
+      <section class="hero"><span>KẾT QUẢ THÁNG</span><strong id="profit">0 đ</strong><small>Dữ liệu đang lưu cục bộ trên máy Windows</small></section>
+      <section class="grid"><article><span>Doanh thu</span><strong id="income">0 đ</strong></article><article><span>Chi phí</span><strong id="expense">0 đ</strong></article><article><span>Thay đổi chờ đồng bộ</span><strong id="pending">0 bản ghi</strong></article></section>
+      <section class="panel"><div><h2>Google Drive</h2><p id="drive-status">Chưa kết nối. Hãy cấu hình OAuth Client cho Windows.</p></div><button id="sync">Kết nối / Đồng bộ</button></section>
+      <p class="footnote">Khung Tauri đã sẵn sàng. Bước tiếp theo là chuyển UI dùng chung sang React/TypeScript và nối native OAuth Windows.</p>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

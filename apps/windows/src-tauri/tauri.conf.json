@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Quản lý chăn nuôi gà",
+  "version": "0.1.0",
+  "identifier": "com.quanlychannuoiga.desktop",
+  "build": {
+    "frontendDist": "../web"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Quản lý chăn nuôi gà",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true
+      }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "windows": { "webviewInstallMode": { "type": "downloadBootstrapper" } }
+  }
+}
