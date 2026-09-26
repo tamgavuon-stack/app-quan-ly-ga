@@ -1,6 +1,7 @@
 import { DEVICE_KEY, FARM_DOCUMENT_ID, FARM_SCHEMA_VERSION, STORAGE_KEY, addRecord, formatCurrency, makeEnvelope, normalizeEnvelope, summarize, toSyncDocument } from "./farm-store.js";
 import { mergeEnvelopes } from "./sync-engine.js";
 import { GOOGLE_DESKTOP_CLIENT_ID } from "./config.js";
+import { authenticateDesktopGoogle } from "./oauth-desktop.js";
 
 const $ = (id) => document.getElementById(id);
 const LEGACY_STORAGE_KEY = "quan-ly-chan-nuoi-ga.windows.records.v1";
@@ -8,6 +9,7 @@ const now = () => new Date().toISOString();
 const deviceId = localStorage.getItem(DEVICE_KEY) || `windows-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 localStorage.setItem(DEVICE_KEY, deviceId);
 let envelope = loadEnvelope();
+let desktopToken = null;
 
 function loadEnvelope() {
   try {
@@ -68,5 +70,14 @@ $("import-file").addEventListener("change", async (event) => {
   catch { alert("File JSON không hợp lệ hoặc không đúng định dạng backup."); }
   event.target.value = "";
 });
-$("sync").addEventListener("click", () => { $("drive-status").textContent = GOOGLE_DESKTOP_CLIENT_ID ? "Đã cấu hình Desktop Client ID; bước kế tiếp là mở OAuth loopback trong Tauri." : "Chưa có Desktop Client ID; dữ liệu local vẫn hoạt động bình thường."; });
+$("sync").addEventListener("click", async () => {
+  if (!GOOGLE_DESKTOP_CLIENT_ID) { $("drive-status").textContent = "Chưa có Desktop Client ID; dữ liệu local vẫn hoạt động bình thường."; return; }
+  $("drive-status").textContent = "Đang mở Google OAuth trong trình duyệt…";
+  try {
+    desktopToken = await authenticateDesktopGoogle();
+    $("drive-status").textContent = desktopToken.refreshToken ? "Google Drive đã kết nối; token đang giữ trong phiên Windows." : "Google Drive đã kết nối; cần quyền offline để giữ refresh token.";
+  } catch (error) {
+    $("drive-status").textContent = error instanceof Error ? error.message : "Không thể kết nối Google Drive.";
+  }
+});
 render();

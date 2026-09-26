@@ -2675,11 +2675,13 @@ dependencies = [
 name = "quan-ly-chan-nuoi-ga-windows"
 version = "0.1.0"
 dependencies = [
+ "open",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "url",
 ]
 
 [[package]]
