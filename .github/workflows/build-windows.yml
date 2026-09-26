@@ -9,12 +9,30 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: apps/windows/src-tauri
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        shell: pwsh
+        run: corepack enable
+
+      - name: Install JavaScript dependencies
+        shell: pwsh
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        shell: pwsh
+        run: pnpm check
+
+      - name: Bundle Windows frontend
+        shell: pwsh
+        run: pnpm build:windows-web
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -25,12 +43,14 @@ jobs:
 
       - name: Build Windows installers
         shell: pwsh
+        working-directory: apps/windows/src-tauri
         run: cargo tauri build --bundles nsis,msi
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
-          name: quan-ly-chan-nuoi-ga-windows
+          name: quan-ly-chan-nuoi-ga-windows-${{ github.sha }}
+          if-no-files-found: error
           path: |
             apps/windows/src-tauri/target/release/bundle/nsis/*.exe
             apps/windows/src-tauri/target/release/bundle/msi/*.msi

@@ -9,6 +9,7 @@
 - Tauri bundle targets: NSIS và MSI
 - Product identifier: `com.quanlychannuoiga.desktop`
 - CI workflow: `.github/workflows/build-windows.yml`
+- Frontend bundle: `pnpm build:windows-web` → `web-dist/`
 - Offline store: `web/farm-store.js` theo envelope/schema v2
 - Backup thủ công: nút Xuất JSON / Nhập JSON
 - Merge engine: `web/sync-engine.js`, giữ tombstone và báo xung đột
@@ -31,7 +32,4 @@ cargo tauri build --bundles nsis,msi
 
 1. Thay adapter JavaScript bằng package TypeScript dùng chung trực tiếp với `shared/farm-schema.ts`.
 2. Dùng chung `shared/sync-engine.ts` và `lib/google-drive-client.ts` thay cho bản chuyển ngữ hiện tại.
-3. Thêm OAuth desktop với loopback redirect của Tauri sau khi có Desktop Client ID.
-4. Lưu refresh token trong Windows Credential Manager/keyring.
-5. Thêm dashboard, sổ giao dịch, báo cáo và màn hình xung đột.
-6. Chạy workflow Windows để xuất `.msi` và `.exe`.
+3. Chạy workflow Windows để xuất `.msi` và `.exe`, sau đó kiểm thử OAuth/Drive trên Windows thật.
