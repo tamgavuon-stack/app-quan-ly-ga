@@ -6,6 +6,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { GOOGLE_DRIVE_SCOPE } from "@/lib/google-drive-client";
 import { authenticateWithGoogleDrive } from "@/lib/google-oauth";
+import { syncWithGoogleDrive } from "@/lib/google-drive-sync";
 import { clearDriveToken, loadDriveToken, saveDriveToken, type OAuthToken } from "@/lib/sync-credentials";
 import { useFarmStore } from "@/lib/farm-store";
 
@@ -50,12 +51,21 @@ export default function SyncScreen() {
     }
   }
 
-  function syncNow() {
+  async function syncNow() {
     if (!configured) {
       Alert.alert("Chưa cấu hình Google Drive", "Cấu hình Client ID trước khi bật đồng bộ thật. Dữ liệu hiện vẫn được lưu offline trên thiết bị.");
       return;
     }
-    Alert.alert("Sẵn sàng kết nối", "Luồng OAuth PKCE đã được chuẩn bị. Bước kế tiếp sẽ mở trình duyệt Google và bắt đầu đồng bộ file appDataFolder.");
+    setConnecting(true);
+    try {
+      const result = await syncWithGoogleDrive(clientId);
+      setToken(result.token);
+      Alert.alert("Đồng bộ hoàn tất", `${result.uploaded ? "Đã cập nhật dữ liệu trên Google Drive." : "Đã nhận dữ liệu mới từ Google Drive."}${result.conflicts ? ` Phát hiện ${result.conflicts} xung đột cần xem lại.` : " Không có xung đột."}`);
+    } catch (error) {
+      Alert.alert("Đồng bộ thất bại", error instanceof Error ? error.message : "Không thể đồng bộ với Google Drive.");
+    } finally {
+      setConnecting(false);
+    }
   }
 
   return (
@@ -80,7 +90,7 @@ export default function SyncScreen() {
           <InfoRow label="Phạm vi Google" value={GOOGLE_DRIVE_SCOPE.split("/").pop() ?? "drive.appdata"} colors={colors} />
         </View>
 
-        <Pressable disabled={connecting} onPress={connected ? syncNow : startConnect} style={({ pressed }) => [styles.primaryButton, { backgroundColor: colors.primary }, connecting && { opacity: 0.65 }, pressed && styles.pressed]}><IconSymbol name={connected ? "arrow.triangle.2.circlepath" : "cloud.fill"} size={20} color="#FFFFFF" /><Text style={styles.primaryText}>{connecting ? "Đang mở Google…" : connected ? "Đồng bộ ngay" : "Kết nối Google Drive"}</Text></Pressable>
+        <Pressable disabled={connecting} onPress={connected ? syncNow : startConnect} style={({ pressed }) => [styles.primaryButton, { backgroundColor: colors.primary }, connecting && { opacity: 0.65 }, pressed && styles.pressed]}><IconSymbol name={connected ? "arrow.triangle.2.circlepath" : "cloud.fill"} size={20} color="#FFFFFF" /><Text style={styles.primaryText}>{connecting ? (connected ? "Đang đồng bộ…" : "Đang mở Google…") : connected ? "Đồng bộ ngay" : "Kết nối Google Drive"}</Text></Pressable>
         {connected && <Pressable onPress={disconnect} style={({ pressed }) => [styles.secondaryButton, { borderColor: colors.border }, pressed && styles.pressed]}><Text style={[styles.secondaryText, { color: colors.error }]}>Ngắt kết nối và xóa token</Text></Pressable>}
 
         <View style={[styles.note, { backgroundColor: colors.primary + "0D", borderColor: colors.primary + "30" }]}><IconSymbol name="lightbulb.fill" size={20} color={colors.primary} /><Text style={[styles.noteText, { color: colors.foreground }]}>Google Drive chỉ lưu dữ liệu khi bạn cấp quyền. Bản ghi trên thiết bị vẫn dùng được khi không có mạng; đồng bộ sẽ được bổ sung ngay sau khi cấu hình Client ID.</Text></View>

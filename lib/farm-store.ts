@@ -97,6 +97,19 @@ export function useFarmStore() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/** Snapshot không chứa cờ UI hydrated, dùng cho sync engine. */
+export function getFarmEnvelope(): FarmLocalEnvelope {
+  const { hydrated: _hydrated, ...envelope } = state;
+  return envelope;
+}
+
+/** Ghi kết quả merge từ Drive về local và thông báo cho toàn bộ màn hình. */
+export function applySyncedEnvelope(envelope: FarmLocalEnvelope) {
+  state = { ...envelope, hydrated: true };
+  notify();
+  void persist(envelope);
+}
+
 export function addRecord(input: Omit<FarmRecord, "id" | "createdAt" | "updatedAt" | "deviceId">) {
   const timestamp = nowIso();
   const record: FarmRecord = {
