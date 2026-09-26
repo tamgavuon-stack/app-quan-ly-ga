@@ -1,4 +1,5 @@
 import { DEVICE_KEY, FARM_DOCUMENT_ID, FARM_SCHEMA_VERSION, STORAGE_KEY, addRecord, formatCurrency, makeEnvelope, normalizeEnvelope, summarize, toSyncDocument } from "./farm-store.js";
+import { mergeEnvelopes } from "./sync-engine.js";
 
 const $ = (id) => document.getElementById(id);
 const LEGACY_STORAGE_KEY = "quan-ly-chan-nuoi-ga.windows.records.v1";
@@ -54,7 +55,15 @@ $("export").addEventListener("click", () => {
 $("import").addEventListener("click", () => $("import-file").click());
 $("import-file").addEventListener("change", async (event) => {
   const file = event.target.files?.[0]; if (!file) return;
-  try { const imported = normalizeEnvelope(JSON.parse(await file.text()), { deviceId }); setRecords(imported.records, imported.records.length); $("drive-status").textContent = "Đã nhập backup schema v2; dữ liệu đang chờ đồng bộ."; }
+  try {
+    const imported = normalizeEnvelope(JSON.parse(await file.text()), { deviceId });
+    const merged = mergeEnvelopes(envelope, imported, now());
+    envelope = merged.envelope;
+    if (!merged.shouldUpload) envelope.sync.pendingChanges = 0;
+    save(); render();
+    $("drive-status").textContent = "Đã merge backup schema v2; dữ liệu local không bị ghi đè.";
+    $("conflict-status").textContent = merged.conflicts.length ? `Phát hiện ${merged.conflicts.length} xung đột; hệ thống giữ bản ghi theo updatedAt/deviceId.` : "Merge hoàn tất, không có xung đột.";
+  }
   catch { alert("File JSON không hợp lệ hoặc không đúng định dạng backup."); }
   event.target.value = "";
 });

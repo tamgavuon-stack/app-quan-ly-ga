@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { addRecord, formatCurrency, makeEnvelope, normalizeEnvelope, summarize, toSyncDocument } from "./farm-store.js";
+import { mergeRecords } from "./sync-engine.js";
 
 test("summarize calculates income, expense, and flock count", () => {
   const summary = summarize([
@@ -37,4 +38,12 @@ test("toSyncDocument produces Drive-compatible document", () => {
 
 test("formatCurrency uses Vietnamese dong format", () => {
   assert.equal(formatCurrency(1250000), "1.250.000 đ");
+});
+
+test("mergeRecords keeps the newest record and reports delete-vs-update", () => {
+  const local = { id: "r1", kind: "expense", category: "Thức ăn", amount: 100, updatedAt: "2026-09-26T10:00:00.000Z", deviceId: "windows" };
+  const remote = { ...local, amount: 0, updatedAt: "2026-09-26T11:00:00.000Z", deletedAt: "2026-09-26T11:00:00.000Z", deviceId: "android" };
+  const result = mergeRecords([local], [remote]);
+  assert.equal(result.records[0].deletedAt, remote.deletedAt);
+  assert.equal(result.conflicts[0].reason, "delete-vs-update");
 });
