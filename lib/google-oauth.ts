@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { buildGoogleAuthUrl, exchangeAuthorizationCode, type GoogleDriveConfig, type OAuthToken } from "./google-drive-client";
+import { GOOGLE_ANDROID_REDIRECT_URI } from "@/constants/google-oauth";
 
 export type PkcePair = { verifier: string; challenge: string; state: string };
 
@@ -32,7 +33,7 @@ export async function createPkcePair(): Promise<PkcePair> {
 
 export async function authenticateWithGoogleDrive(clientId: string): Promise<OAuthToken> {
   if (!clientId) throw new Error("Thiếu Google Drive Client ID");
-  const redirectUri = Linking.createURL("oauth");
+  const redirectUri = GOOGLE_ANDROID_REDIRECT_URI;
   const config: GoogleDriveConfig = { clientId, redirectUri };
   const pkce = await createPkcePair();
   const authUrl = buildGoogleAuthUrl(config, { state: pkce.state, codeChallenge: pkce.challenge });

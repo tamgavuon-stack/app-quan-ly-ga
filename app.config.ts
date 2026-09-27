@@ -25,6 +25,7 @@ const bundleId =
 // e.g., "space.manus.my.app.t20240115103045" -> "manus20240115103045"
 const timestamp = bundleId.split(".").pop()?.replace(/^t/, "") ?? "";
 const schemeFromBundleId = `manus${timestamp}`;
+const googleAndroidRedirectScheme = "com.googleusercontent.apps.23004902593-gp8m2b6dgv128uki370o9usq8scsup58";
 
 const env = {
   // App branding - update these values directly (do not use env vars)
@@ -73,6 +74,9 @@ const config: ExpoConfig = {
           {
             scheme: env.scheme,
             host: "*",
+          },
+          {
+            scheme: googleAndroidRedirectScheme,
           },
         ],
         category: ["BROWSABLE", "DEFAULT"],
