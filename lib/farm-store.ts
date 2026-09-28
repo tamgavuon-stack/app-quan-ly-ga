@@ -15,6 +15,7 @@ import {
 } from "../shared/farm-schema";
 
 export { FARM_DOCUMENT_ID, FARM_SCHEMA_VERSION, expenseCategories, flockCategories, incomeCategories } from "../shared/farm-schema";
+export { normalizeLocalEnvelope } from "../shared/farm-schema";
 export type { FarmLocalEnvelope, FarmRecord, Period, RecordKind } from "../shared/farm-schema";
 
 const STORAGE_KEY_V1 = "quan-ly-chan-nuoi-ga.records.v1";

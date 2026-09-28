@@ -31,6 +31,9 @@ const MAPPING = {
   "lightbulb.fill": "lightbulb-outline",
   "cloud.fill": "cloud",
   "arrow.triangle.2.circlepath": "sync",
+  "tablecells.fill": "table-chart",
+  "arrow.down.doc.fill": "file-download",
+  "arrow.clockwise": "refresh",
 } as IconMapping;
 
 export function IconSymbol({ name, size = 24, color, style }: { name: IconSymbolName; size?: number; color: string | OpaqueColorValue; style?: StyleProp<TextStyle>; weight?: SymbolWeight }) {

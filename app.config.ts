@@ -90,6 +90,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "expo-background-task",
     [
       "expo-audio",
       {
